@@ -94,7 +94,7 @@
 
     <script>
         // --- AAPKA GOOGLE SHEET KA LINK YAHAN PASTE KAREIN ---
-        const googleSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR1bdqOVvIUPA0Y0qJOVBRWPWNKMXz5UnAz1NV1E1OVxpDvlXdw_RzF8UHZ_mZqtEr3CbQjqTEfZjB6/pub?output=csv';
+        const googleSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSqINNmQ6CtGixfyo5goqhTKfVwIMGjQi_5MIc4FtTx053jXO2QftjgUt26XLQXE8Ld7kt7VEPK4TJO/pub?output=csv';
 
         let allBookingsData = [];
         const monthFilter = document.getElementById('month-filter');
@@ -109,34 +109,11 @@
                 const obj = {};
                 const currentline = lines[i].split(',');
                 for (let j = 0; j < headers.length; j++) {
-                    obj[headers[j]] = currentline[j] ? currentline[j].trim() : '';
+                    obj[headers[j]] = currentline[j] ? currentline[j].trim().replace(/"/g, '') : '';
                 }
                 data.push(obj);
             }
             return data;
-        }
-
-        // Function to calculate duration
-        function calculateDuration(item) {
-            if (!item.start_date || !item.start_time || !item.end_date || !item.end_time) {
-                return '';
-            }
-            const startDateTime = new Date(`${item.start_date} ${item.start_time}`);
-            const endDateTime = new Date(`${item.end_date} ${item.end_time}`);
-            if (isNaN(startDateTime) || isNaN(endDateTime)) return '';
-            
-            const diffMs = endDateTime - startDateTime;
-
-            if (item.type === 'stay') {
-                const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-                return `${diffDays} Day${diffDays > 1 ? 's' : ''}`;
-            } else if (item.type === 'travel') {
-                let diffMins = Math.round(diffMs / (1000 * 60));
-                const hours = Math.floor(diffMins / 60);
-                const minutes = diffMins % 60;
-                return `${hours}h ${minutes}m`;
-            }
-            return '';
         }
         
         // Function to render cards for a specific month
@@ -208,19 +185,20 @@
                     </div>
                     <div class="flex items-center justify-between text-center mt-8">
                         <div class="w-1/3">
-                            <p class="text-sm text-gray-500 mb-2">Check In</p>
-                            <p class="font-bold text-gray-800">${stay.start_date}</p>
-                            <p class="text-gray-600 text-sm">${stay.start_time}</p>
+                            <p class="text-sm text-gray-500">Check In</p>
+                            <p class="font-bold text-gray-800">${stay.check_in_date}</p>
+                            <p class="text-gray-600 text-sm">${stay.check_in_time}</p>
                         </div>
                         <div class="w-1/3 flex justify-center">
                             <div class="w-24 h-24 bg-blue-50 border-4 border-blue-200 rounded-full flex flex-col items-center justify-center">
-                                <p class="font-bold text-blue-800 text-xl">${calculateDuration(stay)}</p>
+                                <p class="font-bold text-blue-800 text-xl">${stay.duration_days}</p>
+                                <p class="text-xs text-blue-600">${stay.duration_hours}</p>
                             </div>
                         </div>
                         <div class="w-1/3">
-                            <p class="text-sm text-gray-500 mb-2">Check Out</p>
-                            <p class="font-bold text-gray-800">${stay.end_date}</p>
-                            <p class="text-gray-600 text-sm">${stay.end_time}</p>
+                            <p class="text-sm text-gray-500">Check Out</p>
+                            <p class="font-bold text-gray-800">${stay.check_out_date}</p>
+                            <p class="text-gray-600 text-sm">${stay.check_out_time}</p>
                         </div>
                     </div>
                      <div class="border-t border-gray-200 pt-4 mt-8">
@@ -291,7 +269,7 @@
                         <div class="w-1/3 px-2 train-container">
                             <div class="train-track"><i class="fas fa-train fa-lg train" style="color: ${trainColor};"></i></div>
                             <div class="status-duration-circle w-24 h-24 rounded-full flex flex-col items-center justify-center relative z-10 border-4 ${durationCircleClass}">
-                                <p class="status-duration-text font-bold text-lg ${durationTextClass}">${calculateDuration(travel)}</p>
+                                <p class="status-duration-text font-bold text-lg ${durationTextClass}">${travel.duration_days}</p>
                             </div>
                         </div>
                         <div class="w-1/3 flex flex-col items-center">
