@@ -95,15 +95,17 @@
 
     <div class="w-full max-w-2xl mx-auto space-y-8">
         <!-- Month Filter Dropdown -->
-        <div class="bg-white rounded-2xl shadow-lg overflow-hidden p-4 ticket-card">
-             <label for="month-filter" class="block text-sm font-medium text-gray-700 mb-1">Mahina Select Karein:</label>
-            <select id="month-filter" name="month-filter" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
-                <!-- Options will be populated by JavaScript -->
-            </select>
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden p-4 ticket-card flex justify-center">
+             <div class="w-full max-w-xs">
+                <label for="month-filter" class="block text-lg font-bold text-gray-700 mb-1 text-center">Select Month:</label>
+                <select id="month-filter" name="month-filter" class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    <!-- Options will be populated by JavaScript -->
+                </select>
+             </div>
         </div>
 
         <div id="main-container" class="space-y-8">
-            <!-- Cards ya Loader yahan dikhega -->
+            <!-- Cards or Loader will be displayed here -->
         </div>
     </div>
 
@@ -113,7 +115,7 @@
     </div>
 
     <script>
-        // --- AAPKA GOOGLE SHEET KA LINK YAHAN PASTE KAREIN ---
+        // --- PASTE YOUR GOOGLE SHEET CSV LINK HERE ---
         const googleSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSqINNmQ6CtGixfyo5goqhTKfVwIMGjQi_5MIc4FtTx053jXO2QftjgUt26XLQXE8Ld7kt7VEPK4TJO/pub?output=csv';
 
         // --- GLOBAL VARIABLES ---
@@ -124,18 +126,18 @@
         const toastMessage = document.getElementById('toast-message');
         let toastTimeout;
 
-        // Loader ka HTML template
+        // Loader HTML template
         const loaderHtml = `
             <div class="text-center p-10">
                 <svg aria-hidden="true" class="inline w-10 h-10 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
-                    <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0492C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+                    <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0492C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentColor"/>
                 </svg>
-                <p class="mt-4 text-gray-600 font-semibold">Data load ho raha hai...</p>
+                <p class="mt-4 text-gray-600 font-semibold">Loading data...</p>
             </div>
         `;
 
-        // --- TOAST NOTIFICATION FUNCTIONS ---
+        // Function to show toast notification
         function showToast(message) {
             clearTimeout(toastTimeout);
             toastMessage.textContent = message;
@@ -145,44 +147,47 @@
             }, 3000);
         }
 
+        // Function to handle PDF link clicks
         function handlePdfClick(pdfLink) {
             if (pdfLink && pdfLink.trim() !== '' && pdfLink.trim() !== '#') {
                 window.open(pdfLink, '_blank');
             } else {
-                showToast('Link abhi uplabdh nahi hai.');
+                showToast('Link is not available right now.');
             }
         }
 
-        // CSV data ko parse karne ka function
+        // Function to parse CSV data
         function parseCSV(csvText) {
-            const lines = csvText.split(/\r?\n/).filter(line => line);
+            const lines = csvText.split(/\r?\n/).filter(line => line.trim());
             if (lines.length < 2) return [];
-            const headers = lines[0].split(',').map(h => h.trim());
+            const headers = lines[0].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(h => h.trim().replace(/"/g, ''));
             const data = [];
             for (let i = 1; i < lines.length; i++) {
                 const obj = {};
-                const currentline = lines[i].split(',');
-                for (let j = 0; j < headers.length; j++) {
-                    obj[headers[j]] = currentline[j] ? currentline[j].trim().replace(/"/g, '') : '';
+                const currentline = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(item => item.trim().replace(/"/g, ''));
+                if (currentline.length === headers.length) {
+                    for (let j = 0; j < headers.length; j++) {
+                        obj[headers[j]] = currentline[j];
+                    }
+                    data.push(obj);
                 }
-                data.push(obj);
             }
             return data;
         }
-        
-        // Chune gaye mahine ke liye cards render karne ka function
+
+        // Function to render cards for a specific month
         function renderCards(selectedMonth) {
-            mainContainer.innerHTML = ''; // Purane cards ya loader ko saaf karein
+            mainContainer.innerHTML = ''; // Clear previous cards or loader
 
             const filteredData = allBookingsData.filter(row => row.month === selectedMonth);
-            
+
             if (filteredData.length === 0) {
-                mainContainer.innerHTML = `<p class="text-center text-gray-500 p-10">Is mahine ke liye koi booking nahi hai.</p>`;
+                mainContainer.innerHTML = `<p class="text-center text-gray-500 p-10">No bookings found for this month.</p>`;
                 return;
             }
-            
-            const bookings = new Map();
 
+            // Grouping multiple passengers under a single booking
+            const bookings = new Map();
             filteredData.forEach(row => {
                 const key = row.month + '-' + row.type + '-' + (row.booking_no_pnr || Math.random());
                 if (!bookings.has(key)) {
@@ -202,6 +207,7 @@
             }
         }
 
+        // Function to create a stay card
         function createStayCard(stay, container) {
             const stayCard = document.createElement('div');
             stayCard.className = 'bg-white rounded-2xl shadow-lg overflow-hidden ticket-card';
@@ -209,17 +215,17 @@
             let guestHtml = '';
             stay.passengers.forEach(guest => {
                 guestHtml += `
-                            <div class="flex items-center justify-between bg-gray-50 p-1 rounded-lg">
-                                <div class="flex items-center w-1/3">
-                                    <div class="bg-blue-100 text-blue-600 rounded-full h-6 w-6 flex items-center justify-center font-bold mr-3 text-xs">${guest.guest_initials}</div>
-                                    <p class="font-semibold text-gray-800 text-sm">${guest.guest_name}</p>
-                                </div>
-                                <div class="w-1/3 text-center"></div>
-                                <div class="text-right w-1/3">
-                                    <p class="text-sm text-gray-500">Amount</p>
-                                    <p class="font-bold text-gray-800">₹ ${guest.fare}</p>
-                                </div>
-                            </div>`;
+                    <div class="flex items-center justify-between bg-gray-50 p-2 rounded-lg">
+                        <div class="flex items-center w-1/3">
+                            <div class="bg-blue-100 text-blue-600 rounded-full h-6 w-6 flex items-center justify-center font-bold mr-2 text-xs">${guest.guest_initials}</div>
+                            <p class="font-semibold text-gray-800 text-sm">${guest.guest_name}</p>
+                        </div>
+                        <div class="w-1/3 text-center"></div>
+                        <div class="text-right w-1/3">
+                            <p class="text-sm text-gray-500">Amount</p>
+                            <p class="font-bold text-gray-800">₹ ${guest.fare}</p>
+                        </div>
+                    </div>`;
             });
             
             stayCard.innerHTML = `
@@ -231,49 +237,49 @@
                     </div>
                 </div>
                 <div class="p-6">
-                     <div class="flex justify-between items-start -mt-2 mb-4">
-                         <div>
-                             <p class="text-sm text-gray-500">Hotel/Dharamshala/Guest House</p>
-                             <p class="font-semibold text-gray-800">${stay.name}</p>
-                         </div>
-                         <div class="text-right">
-                              <p class="text-sm text-gray-500">Booking No.</p>
-                              <p class="font-mono font-bold text-gray-800">${stay.booking_no_pnr}</p>
-                         </div>
-                     </div>
-                     <div class="flex items-center justify-between text-center mt-8">
-                         <div class="w-1/3">
-                             <p class="text-sm text-gray-500">Check In</p>
-                             <p class="font-bold text-gray-800 flex items-center justify-center gap-2 mt-1">
-                                 <i class="fas fa-calendar-days text-gray-500"></i>
-                                 <span>${stay.check_in_date}</span>
-                             </p>
-                             <p class="text-gray-600 text-sm flex items-center justify-center gap-2">
-                                 <i class="fas fa-clock text-gray-500"></i>
-                                 <span>${stay.check_in_time}</span>
-                             </p>
-                         </div>
-                         <div class="w-1/3 flex justify-center">
-                             <div class="w-24 h-24 bg-blue-50 border-4 border-blue-200 rounded-full flex flex-col items-center justify-center">
-                                 <p class="font-bold text-blue-800 text-xl">${stay.duration_days}</p>
-                                 <p class="text-xs text-blue-600">${stay.duration_hours}</p>
-                             </div>
-                         </div>
-                         <div class="w-1/3">
-                             <p class="text-sm text-gray-500">Check Out</p>
-                             <p class="font-bold text-gray-800 flex items-center justify-center gap-2 mt-1">
-                                 <i class="fas fa-calendar-days text-gray-500"></i>
-                                 <span>${stay.check_out_date}</span>
-                             </p>
-                             <p class="text-gray-600 text-sm flex items-center justify-center gap-2">
-                                 <i class="fas fa-clock text-gray-500"></i>
-                                 <span>${stay.check_out_time}</span>
-                             </p>
-                         </div>
-                     </div>
-                      <div class="border-t border-gray-200 pt-4 mt-8">
-                           <div class="space-y-2">${guestHtml}</div>
-                      </div>
+                    <div class="flex justify-between items-start -mt-2 mb-4">
+                        <div>
+                            <p class="text-sm text-gray-500">Hotel/Dharamshala/Guest House</p>
+                            <p class="font-semibold text-gray-800">${stay.name}</p>
+                        </div>
+                        <div class="text-right">
+                             <p class="text-sm text-gray-500">Booking No.</p>
+                             <p class="font-mono font-bold text-gray-800">${stay.booking_no_pnr}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between text-center mt-8">
+                        <div class="w-1/3">
+                            <p class="text-sm text-gray-500">Check In</p>
+                            <p class="font-bold text-gray-800 flex items-center justify-center gap-2 mt-1">
+                                <i class="fas fa-calendar-days text-gray-500"></i>
+                                <span>${stay.check_in_date}</span>
+                            </p>
+                            <p class="text-gray-600 text-sm flex items-center justify-center gap-2">
+                                <i class="fas fa-clock text-gray-500"></i>
+                                <span>${stay.check_in_time}</span>
+                            </p>
+                        </div>
+                        <div class="w-1/3 flex justify-center">
+                            <div class="w-24 h-24 bg-blue-50 border-4 border-blue-200 rounded-full flex flex-col items-center justify-center">
+                                <p class="font-bold text-blue-800 text-xl">${stay.duration_days}</p>
+                                <p class="text-xs text-blue-600">${stay.duration_hours}</p>
+                            </div>
+                        </div>
+                        <div class="w-1/3">
+                            <p class="text-sm text-gray-500">Check Out</p>
+                            <p class="font-bold text-gray-800 flex items-center justify-center gap-2 mt-1">
+                                <i class="fas fa-calendar-days text-gray-500"></i>
+                                <span>${stay.check_out_date}</span>
+                            </p>
+                            <p class="text-gray-600 text-sm flex items-center justify-center gap-2">
+                                <i class="fas fa-clock text-gray-500"></i>
+                                <span>${stay.check_out_time}</span>
+                            </p>
+                        </div>
+                    </div>
+                     <div class="border-t border-gray-200 pt-4 mt-8">
+                        <div class="space-y-2">${guestHtml}</div>
+                    </div>
                 </div>
                 <div class="bg-gray-50 px-6 py-4">
                     <a href="javascript:void(0);" onclick="handlePdfClick('${stay.pdf_link}')" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition duration-300 flex items-center justify-center">
@@ -284,6 +290,7 @@
             container.appendChild(stayCard);
         }
 
+        // Function to create a travel card
         function createTravelCard(travel, container) {
             const travelCard = document.createElement('div');
             travelCard.className = 'bg-white rounded-2xl shadow-lg overflow-hidden travel-card ticket-card';
@@ -315,7 +322,7 @@
                     break;
                 case 'not-booked':
                     headerClass = 'bg-red-500'; chipClass = 'bg-white text-red-800'; chipIcon = `<svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>`; chipText = 'Not Booked'; trainColor = '#ef4444'; durationCircleClass = 'bg-red-50 border-red-200'; durationTextClass = 'text-red-800';
-                    passengerHtml = `<div class="text-center"><p class="text-gray-600">Aapne is yatra ke liye ticket book nahi kiya hai.</p></div>`;
+                    passengerHtml = `<div class="text-center"><p class="text-gray-600">You have not booked a ticket for this journey.</p></div>`;
                     footerButtonHtml = createFooterButton(travel.pdf_link, 'bg-gray-800', 'hover:bg-gray-900', '<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>', 'Book Now');
                     break;
             }
@@ -354,6 +361,7 @@
                             <div class="train-track"><i class="fas fa-train fa-lg train" style="color: ${trainColor};"></i></div>
                             <div class="status-duration-circle w-24 h-24 rounded-full flex flex-col items-center justify-center relative z-10 border-4 ${durationCircleClass}">
                                 <p class="status-duration-text font-bold text-lg ${durationTextClass}">${travel.duration_days}</p>
+                                <p class="text-xs ${durationTextClass}">${travel.duration_hours}</p>
                             </div>
                         </div>
                         <div class="w-1/3 flex flex-col items-center">
@@ -364,7 +372,7 @@
                                 <i class="fas fa-calendar-days fa-xs text-gray-500"></i>
                                 <span>${travel.end_date}</span>
                             </p>
-                             <p class="text-gray-600 text-sm flex items-center gap-1.5">
+                            <p class="text-gray-600 text-sm flex items-center gap-1.5">
                                 <i class="fas fa-clock fa-xs text-gray-500"></i>
                                 <span>${travel.end_time}</span>
                             </p>
@@ -377,16 +385,17 @@
             container.appendChild(travelCard);
         }
 
-        // Yeh function page load hone par chalega
+        // This function will run once when the page loads
         async function initializePage() {
             if (!googleSheetUrl || googleSheetUrl.includes('YOUR_GOOGLE_SHEET')) {
-                mainContainer.innerHTML = `<p class="text-center text-orange-500">Kripya script mein apni Google Sheet ka CSV link dalein.</p>`;
+                mainContainer.innerHTML = `<p class="text-center text-orange-500">Please add your Google Sheet CSV link in the script.</p>`;
                 return;
             }
 
-            mainContainer.innerHTML = loaderHtml; // Initial loading dikhayein
+            mainContainer.innerHTML = loaderHtml; // Show loader initially
 
             try {
+                // Fetch with a cache-busting parameter
                 const response = await fetch(`${googleSheetUrl}&_=${new Date().getTime()}`);
                 if (!response.ok) {
                     throw new Error(`Network response was not ok: ${response.statusText}`);
@@ -394,9 +403,9 @@
                 const csvText = await response.text();
                 allBookingsData = parseCSV(csvText);
                 
-                // Dropdown ko banayein
-                const months = [...new Set(allBookingsData.map(item => item.month))];
-                monthFilter.innerHTML = '<option value="">-- Mahina Chunein --</option>'; // Default option
+                // Populate the dropdown with unique months
+                const months = [...new Set(allBookingsData.map(item => item.month))].filter(month => month);
+                monthFilter.innerHTML = '<option value="">-- Select Month --</option>'; // Default option
                 months.forEach(month => {
                     const option = document.createElement('option');
                     option.value = month;
@@ -404,39 +413,40 @@
                     monthFilter.appendChild(option);
                 });
                 
-                // Loader hatakar initial message dikhayein
-                mainContainer.innerHTML = `<p class="text-center text-gray-500 p-10">Upar diye gaye dropdown se mahina select karein.</p>`;
+                // Show initial message or render for the current month if available
+                const currentMonth = new Date().toLocaleString('default', { month: 'long' });
+                if (months.includes(currentMonth)) {
+                    monthFilter.value = currentMonth;
+                    renderCards(currentMonth);
+                } else {
+                    mainContainer.innerHTML = `<p class="text-center text-gray-500 p-10">Please select a month from the dropdown above to see bookings.</p>`;
+                }
 
             } catch (error) {
                 console.error('Error fetching data:', error);
-                mainContainer.innerHTML = `<p class="text-center text-red-500">Data load karne mein error aaya. Kripya Google Sheet link aur publishing settings check karein.</p>`;
+                mainContainer.innerHTML = `<p class="text-center text-red-500">Error loading data. Please check the Google Sheet link and publishing settings.</p>`;
             }
         }
 
-        // --- EVENTS ---
+        // --- EVENT LISTENERS ---
         document.addEventListener('DOMContentLoaded', () => {
-            // Dropdown change hone par
             monthFilter.addEventListener('change', (e) => {
                 const selectedMonth = e.target.value;
                 if (!selectedMonth) {
-                    mainContainer.innerHTML = `<p class="text-center text-gray-500 p-10">Upar diye gaye dropdown se mahina select karein.</p>`;
+                    mainContainer.innerHTML = `<p class="text-center text-gray-500 p-10">Please select a month from the dropdown above to see bookings.</p>`;
                     return;
                 }
                 
-                // Loader dikhayein
+                // Show loader with a small delay for better user experience
                 mainContainer.innerHTML = loaderHtml;
-
-                // Thoda delay add kar rahe hain taaki loader saaf dikhe
                 setTimeout(() => {
                     renderCards(selectedMonth);
-                }, 500); // 0.5 second ka delay
+                }, 500); // 0.5 second delay
             });
 
-            // Page ko initialize karein
+            // Initialize the page on load
             initializePage();
-
         });
-
     </script>
 
 </body>
