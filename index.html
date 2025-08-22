@@ -117,9 +117,8 @@
         const googleSheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSqINNmQ6CtGixfyo5goqhTKfVwIMGjQi_5MIc4FtTx053jXO2QftjgUt26XLQXE8Ld7kt7VEPK4TJO/pub?output=csv';
 
         // --- AUTO-REFRESH INTERVAL ---
-        // Yahan aap set kar sakte hain ki data kitni der mein refresh ho (milliseconds mein).
-        // Abhi yeh 10 seconds par set hai (10000).
-        const REFRESH_INTERVAL_MS = 10000;
+        // Refresh interval 30 seconds par set hai taaki fetch errors na aayein.
+        const REFRESH_INTERVAL_MS = 30000; 
 
         let allBookingsData = [];
         const monthFilter = document.getElementById('month-filter');
@@ -134,7 +133,7 @@
             toastElement.classList.add('show');
             toastTimeout = setTimeout(() => {
                 toastElement.classList.remove('show');
-            }, 3000); // 3 seconds ke baad hide ho jayega
+            }, 3000);
         }
 
         function handlePdfClick(pdfLink) {
@@ -365,23 +364,43 @@
             container.appendChild(travelCard);
         }
 
-        async function fetchDataAndInitialize() {
+        // Yeh function sirf data ko background mein refresh karega
+        async function refreshData() {
+            try {
+                const response = await fetch(`${googleSheetUrl}&_=${new Date().getTime()}`);
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok: ${response.statusText}`);
+                }
+                const csvText = await response.text();
+                allBookingsData = parseCSV(csvText); // Global data variable ko update karein
+
+                // Currently selected month ke liye cards ko re-render karein
+                if (monthFilter.value) {
+                    renderCards(monthFilter.value);
+                }
+            } catch (error) {
+                console.error('Error during auto-refresh:', error);
+                showToast('Could not refresh data.');
+            }
+        }
+
+        // Yeh function page load hone par sirf ek baar chalega
+        async function initializePage() {
             if (!googleSheetUrl || googleSheetUrl === 'YOUR_GOOGLE_SHEET_CSV_LINK_HERE') {
                 document.getElementById('main-container').innerHTML = `<p class="text-center text-orange-500">Please add your Google Sheet CSV link in the script to see the cards.</p>`;
                 return;
             }
 
             try {
-                // Add a cache-busting parameter to the URL to avoid browser cache
                 const response = await fetch(`${googleSheetUrl}&_=${new Date().getTime()}`);
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok: ${response.statusText}`);
+                }
                 const csvText = await response.text();
                 allBookingsData = parseCSV(csvText);
                 
-                const currentSelectedMonth = monthFilter.value;
-                monthFilter.innerHTML = ''; // Clear existing options
-                
+                // Dropdown ko sirf ek baar banayein
                 const months = [...new Set(allBookingsData.map(item => item.month))];
-                
                 months.forEach(month => {
                     const option = document.createElement('option');
                     option.value = month;
@@ -389,11 +408,7 @@
                     monthFilter.appendChild(option);
                 });
                 
-                // Restore selection if possible, otherwise default to first
-                if (months.includes(currentSelectedMonth)) {
-                    monthFilter.value = currentSelectedMonth;
-                }
-                
+                // Pehli baar cards render karein
                 if (monthFilter.value) {
                     renderCards(monthFilter.value);
                 }
@@ -410,12 +425,12 @@
                 renderCards(e.target.value);
             });
 
-            // Pehli baar data fetch karein jab page load ho
-            fetchDataAndInitialize();
+            // Page ko initialize karein
+            initializePage();
 
-            // Auto-refresh setup: Har REFRESH_INTERVAL_MS ke baad data dobara fetch karega
-            setInterval(fetchDataAndInitialize, REFRESH_INTERVAL_MS);
-            console.log(`Auto-refresh is set for every ${REFRESH_INTERVAL_MS / 1000} seconds.`);
+            // Auto-refresh setup: Sirf data ko refresh karega
+            setInterval(refreshData, REFRESH_INTERVAL_MS);
+            console.log(`Auto-refreshing data every ${REFRESH_INTERVAL_MS / 1000} seconds.`);
         });
 
     </script>
